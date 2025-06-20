@@ -10,8 +10,13 @@ import java.util.List;
 public class ValidationResult {
     private String status;
     private String message;
-    private List<Deviation> deviations;
-    private FakturData validatedData;
+    private ValidationDetails validationResults;
+
+    @Data
+    public static class ValidationDetails {
+        private List<Deviation> deviations;
+        private DJPResponse validatedData;
+    }
 
     @Data
     @Builder

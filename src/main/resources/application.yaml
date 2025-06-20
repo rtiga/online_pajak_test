@@ -1,6 +1,9 @@
 server:
   port: 8080
 spring:
+  jackson:
+    serialization:
+      write-bigdecimal-as-plain: true
   application:
     name: online-pajak
   datasource:

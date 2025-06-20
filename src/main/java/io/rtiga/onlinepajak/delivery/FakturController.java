@@ -29,7 +29,7 @@ public class FakturController {
             return ResponseEntity.badRequest().body(
                     ValidationResult.builder()
                             .status("error")
-                            .message("Only PDF or JPG files are supported.")
+                            .message("File is not JPG or PDF")
                             .build()
             );
         }

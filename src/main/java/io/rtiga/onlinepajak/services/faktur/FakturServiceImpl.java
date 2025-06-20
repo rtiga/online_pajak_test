@@ -1,32 +1,42 @@
 package io.rtiga.onlinepajak.services.faktur;
 
+import io.rtiga.onlinepajak.domains.dto.DJPResponse;
 import io.rtiga.onlinepajak.domains.dto.FakturData;
 import io.rtiga.onlinepajak.domains.dto.ValidationResult;
+import io.rtiga.onlinepajak.services.DJPMockClient;
+import io.rtiga.onlinepajak.utils.XmlParser;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.InputStream;
+import java.util.Objects;
 
 @Service
 public class FakturServiceImpl implements FakturService {
 
     private final FakturParser fakturParser;
     private final Validator fakturValidator;
+    private final DJPMockClient djpMockClient;
 
-    public FakturServiceImpl(FakturParser fakturParser, Validator fakturValidator) {
+    public FakturServiceImpl(FakturParser fakturParser, Validator fakturValidator, DJPMockClient djpMockClient) {
         this.fakturParser = fakturParser;
         this.fakturValidator = fakturValidator;
+        this.djpMockClient = djpMockClient;
     }
 
     @Override
     public ValidationResult processFaktur(MultipartFile file) {
-        try (InputStream inputStream = file.getInputStream()) {
+        try {
+            FakturData parsed;
 
-            FakturData parsed = fakturParser.parsePdf(inputStream);
+            if(Objects.equals(file.getContentType(), "application/pdf")){
+                parsed = fakturParser.parsePdf(file);
+            } else {
+                parsed = fakturParser.parseJpeg(file);
+            }
 
-            FakturData official = parsed; // TODO: Replace with actual API integration or a mocked one
+            String fetchFakturXml = djpMockClient.fetchFakturXml();
+            DJPResponse djpResponse = XmlParser.parseXml(fetchFakturXml);
 
-            return fakturValidator.validate(parsed,official);
+            return fakturValidator.validate(parsed,djpResponse);
         } catch (Exception e) {
             return ValidationResult.builder()
                     .status("error")
